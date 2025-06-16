@@ -39,34 +39,21 @@ int main()
         exit(1);
     }
 
+    std::string username, password, key, TfaCode; // keep this before the auto-login with saved file.
+    // because if you don't and the user has 2FA on, then they won't be asked for 2FA code and can't login.
+
     if (std::filesystem::exists("test.json")) //change test.txt to the path of your file :smile:
     {
         if (!CheckIfJsonKeyExists("test.json", "username"))
         {
-            std::string key = ReadFromJson("test.json", "license");
+            key = ReadFromJson("test.json", "license");
             KeyAuthApp.license(key);
-            if (!KeyAuthApp.response.success)
-            {
-                std::remove("test.json");
-                std::cout << skCrypt("\n Status: ") << KeyAuthApp.response.message;
-                Sleep(1500);
-                exit(1);
-            }
-            std::cout << skCrypt("\n\n Successfully Automatically Logged In\n");
         }
         else
         {
-            std::string username = ReadFromJson("test.json", "username");
-            std::string password = ReadFromJson("test.json", "password");
+            username = ReadFromJson("test.json", "username");
+            password = ReadFromJson("test.json", "password");
             KeyAuthApp.login(username, password);
-            if (!KeyAuthApp.response.success)
-            {
-                std::remove("test.json");
-                std::cout << skCrypt("\n Status: ") << KeyAuthApp.response.message;
-                Sleep(1500);
-                exit(1);
-            }
-            std::cout << skCrypt("\n\n Successfully Automatically Logged In\n");
         }
     }
     else
@@ -74,7 +61,6 @@ int main()
         std::cout << skCrypt("\n\n [1] Login\n [2] Register\n [3] Upgrade\n [4] License key only\n\n Choose option: ");
 
         int option;
-        std::string username, password, key, TfaCode;
 
         std::cin >> option;
         switch (option)
@@ -84,9 +70,7 @@ int main()
             std::cin >> username;
             std::cout << skCrypt("\n Enter password: ");
             std::cin >> password;
-            std::cout << skCrypt("\n Enter 2fa code if applicable: ");
-            std::cin >> TfaCode;
-            KeyAuthApp.login(username, password, TfaCode);
+            KeyAuthApp.login(username, password, "");
             break;
         case 2:
             std::cout << skCrypt("\n\n Enter username: ");
@@ -107,34 +91,55 @@ int main()
         case 4:
             std::cout << skCrypt("\n Enter license: ");
             std::cin >> key;
-            std::cout << skCrypt("\n Enter 2fa code if applicable: ");
-            std::cin >> TfaCode;
-            KeyAuthApp.license(key, TfaCode);
+            KeyAuthApp.license(key, "");
             break;
         default:
             std::cout << skCrypt("\n\n Status: Failure: Invalid Selection");
             Sleep(3000);
             exit(1);
         }
+    }
 
-        if (KeyAuthApp.response.message.empty()) exit(11);
-        if (!KeyAuthApp.response.success)
-        {
+    if (KeyAuthApp.response.message.empty()) exit(11);
+    if (!KeyAuthApp.response.success)
+    {
+        if (KeyAuthApp.response.message == "2FA code required.") {
+            if (username.empty() || password.empty()) {
+                std::cout << skCrypt("\n Your account has 2FA enabled, please enter 6-digit code:");
+                std::cin >> TfaCode;
+                KeyAuthApp.license(key, TfaCode);
+            }
+            else {
+                std::cout << skCrypt("\n Your account has 2FA enabled, please enter 6-digit code:");
+                std::cin >> TfaCode;
+                KeyAuthApp.login(username, password, TfaCode);
+            }
+
+            if (KeyAuthApp.response.message.empty()) exit(11);
+            if (!KeyAuthApp.response.success) {
+                std::cout << skCrypt("\n Status: ") << KeyAuthApp.response.message;
+                std::remove("test.json");
+                Sleep(1500);
+                exit(1);
+            }
+        }
+        else {
             std::cout << skCrypt("\n Status: ") << KeyAuthApp.response.message;
+            std::remove("test.json");
             Sleep(1500);
             exit(1);
         }
+    }
 
-        if (username.empty() || password.empty())
-        {
-            WriteToJson("test.json", "license", key, false, "", "");
-            std::cout << skCrypt("Successfully Created File For Auto Login");
-        }
-        else
-        {
-            WriteToJson("test.json", "username", username, true, "password", password);
-            std::cout << skCrypt("Successfully Created File For Auto Login");
-        }
+    if (username.empty() || password.empty())
+    {
+        WriteToJson("test.json", "license", key, false, "", "");
+        std::cout << skCrypt("Successfully Created File For Auto Login");
+    }
+    else
+    {
+        WriteToJson("test.json", "username", username, true, "password", password);
+        std::cout << skCrypt("Successfully Created File For Auto Login");
     }
 
     /*
