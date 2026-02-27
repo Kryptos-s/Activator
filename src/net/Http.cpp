@@ -41,8 +41,7 @@ bool Download(const std::string& url, const std::string& outputPath, std::size_t
   downloaded = 0;
   total = 0;
   auto response = cpr::Download(out, cpr::Url{url}, cpr::VerifySsl{true},
-                                cpr::ProgressCallback{[&](cpr_off_t dlTotal, cpr_off_t dlNow,
-                                                          cpr_off_t, cpr_off_t) {
+                                cpr::ProgressCallback{[&](auto dlTotal, auto dlNow, auto, auto) {
                                   total = static_cast<std::size_t>(dlTotal);
                                   downloaded = static_cast<std::size_t>(dlNow);
                                   const auto elapsed = std::chrono::duration<double>(

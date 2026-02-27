@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include <cmath>
+#include <numbers>
 
 namespace activator::ui {
 
@@ -11,7 +12,7 @@ void DrawSpinner(float radius, float thickness, int segments) {
   const ImVec2 pos = ImGui::GetCursorScreenPos();
   const float time = static_cast<float>(ImGui::GetTime());
   const float start = time * 8.0F;
-  const float end = start + IM_PI * 1.5F;
+  const float end = start + std::numbers::pi_v<float> * 1.5F;
 
   drawList->PathClear();
   for (int i = 0; i < segments; ++i) {

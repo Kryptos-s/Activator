@@ -1,6 +1,7 @@
 #include "util/Files.hpp"
 
 #include <cstdlib>
+#include <string>
 #include <filesystem>
 
 #ifdef _WIN32
@@ -15,12 +16,28 @@ std::filesystem::path Ensure(const std::filesystem::path& path) {
   std::filesystem::create_directories(path);
   return path;
 }
+
+std::string ReadEnv(const char* key) {
+#ifdef _WIN32
+  char* buffer = nullptr;
+  std::size_t len = 0;
+  if (_dupenv_s(&buffer, &len, key) != 0 || buffer == nullptr) {
+    return {};
+  }
+  std::string value(buffer);
+  std::free(buffer);
+  return value;
+#else
+  const char* value = std::getenv(key);
+  return value != nullptr ? std::string(value) : std::string{};
+#endif
+}
 }  // namespace
 
 std::filesystem::path AppDataDirectory() {
 #ifdef _WIN32
-  const char* appData = std::getenv("APPDATA");
-  return Ensure(std::filesystem::path(appData ? appData : ".") / "Activator");
+  const auto appData = ReadEnv("APPDATA");
+  return Ensure(std::filesystem::path(appData.empty() ? "." : appData) / "Activator");
 #else
   return Ensure(std::filesystem::path(".") / ".activator");
 #endif

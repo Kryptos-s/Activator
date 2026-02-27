@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <string>
 
 #include "security/Hwid.hpp"
 #include "ui/Screens/DashboardScreen.hpp"
@@ -21,6 +22,22 @@ namespace activator {
 namespace {
 constexpr int kDefaultWidth = 1100;
 constexpr int kDefaultHeight = 700;
+
+std::string ReadEnv(const char* key) {
+#ifdef _WIN32
+  char* buffer = nullptr;
+  std::size_t len = 0;
+  if (_dupenv_s(&buffer, &len, key) != 0 || buffer == nullptr) {
+    return {};
+  }
+  std::string value(buffer);
+  std::free(buffer);
+  return value;
+#else
+  const char* value = std::getenv(key);
+  return value != nullptr ? std::string(value) : std::string{};
+#endif
+}
 }  // namespace
 
 App::App() = default;
@@ -64,7 +81,8 @@ bool App::InitWindow() {
 }
 
 void App::InitState() {
-  if (const char* backend = std::getenv("ACTIVATOR_BACKEND_URL")) {
+  const auto backend = ReadEnv("ACTIVATOR_BACKEND_URL");
+  if (!backend.empty()) {
     state_.backendUrl = backend;
   } else {
     state_.backendUrl = "https://localhost:7443";
