@@ -1,0 +1,17 @@
+{
+  "name": "activator",
+  "version-string": "1.0.0",
+  "builtin-baseline": "HEAD",
+  "dependencies": [
+    "glfw3",
+    {
+      "name": "imgui",
+      "features": ["glfw-binding", "opengl3-binding"]
+    },
+    "cpr",
+    "openssl",
+    "nlohmann-json",
+    "fmt",
+    "libzip"
+  ]
+}
