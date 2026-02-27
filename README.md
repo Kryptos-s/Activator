@@ -44,7 +44,8 @@ Client UX is designed for server policy:
 - Windows 10/11
 - MSVC (Visual Studio 2022 recommended)
 - CMake >= 3.23
-- Ninja
+- Visual Studio 2022 Build Tools (or full VS)
+- Ninja (optional, only for *-ninja presets)
 - vcpkg
 
 ## Configure + build
@@ -55,6 +56,8 @@ cmake --preset debug
 cmake --build --preset debug
 ```
 
+The default `debug` / `release` presets use **Visual Studio 2022 x64** and do not require Ninja.
+
 Release:
 
 ```powershell
@@ -62,10 +65,21 @@ cmake --preset release
 cmake --build --preset release
 ```
 
+Optional Ninja presets (if Ninja is installed):
+
+```powershell
+cmake --preset debug-ninja
+cmake --build --preset debug-ninja
+```
+
 Output executable:
 
 - `build/debug/bin/Activator.exe`
 - `build/release/bin/Activator.exe`
+
+## vcpkg manifest mode note
+
+`vcpkg.json` includes a `builtin-baseline`, so `cmake --preset ...` can run manifest installs without requiring extra registry configuration.
 
 ## Runtime configuration
 
