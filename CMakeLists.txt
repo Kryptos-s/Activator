@@ -1,4 +1,13 @@
 cmake_minimum_required(VERSION 3.23)
+
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  if(DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg toolchain")
+  else()
+    message(FATAL_ERROR "VCPKG_ROOT is not set (or invalid). Set it to your vcpkg root before configuring, e.g. PowerShell: $env:VCPKG_ROOT='C:/src/vcpkg' or cmd: set VCPKG_ROOT=C:/src/vcpkg")
+  endif()
+endif()
+
 project(Activator VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)

@@ -50,8 +50,18 @@ Client UX is designed for server policy:
 
 ## Configure + build
 
+PowerShell:
+
 ```powershell
 $env:VCPKG_ROOT="C:\src\vcpkg"
+cmake --preset debug
+cmake --build --preset debug
+```
+
+Command Prompt (cmd.exe):
+
+```bat
+set VCPKG_ROOT=C:\src\vcpkg
 cmake --preset debug
 cmake --build --preset debug
 ```
@@ -149,3 +159,17 @@ Replace its body with your existing KeyAuth integration call and map fields:
 - expiresAt
 
 No other code should need changes.
+
+
+## Troubleshooting (Windows)
+
+- If you see baseline checkout errors (e.g. `failed to git show ... versions/baseline.json`), your local `vcpkg` clone is stale/corrupted. Run:
+
+```powershell
+cd $env:VCPKG_ROOT
+git fetch --all --tags --prune
+git reset --hard origin/master
+```
+
+- If `VCPKG_ROOT` is not set, CMake expands toolchain path to `/scripts/buildsystems/vcpkg.cmake` (invalid) and configure fails. Ensure the env var is set in the same shell before running CMake.
+- Run configure first (`cmake --preset debug`) and only then build (`cmake --build --preset debug`).
