@@ -3,6 +3,7 @@
 #include <cpr/cpr.h>
 
 #include <chrono>
+#include <cstdint>
 #include <fstream>
 
 namespace activator::net {
@@ -40,20 +41,22 @@ bool Download(const std::string& url, const std::string& outputPath, std::size_t
   const auto start = std::chrono::steady_clock::now();
   downloaded = 0;
   total = 0;
-  auto response = cpr::Download(out, cpr::Url{url}, cpr::VerifySsl{true},
-                                cpr::ProgressCallback{[&](auto dlTotal, auto dlNow, auto, auto) {
-                                  total = static_cast<std::size_t>(dlTotal);
-                                  downloaded = static_cast<std::size_t>(dlNow);
-                                  const auto elapsed = std::chrono::duration<double>(
-                                      std::chrono::steady_clock::now() - start);
-                                  speedBytesPerSec =
-                                      elapsed.count() > 0 ? downloaded / elapsed.count() : 0.0;
-                                  if (speedBytesPerSec > 0 && total > downloaded) {
-                                    etaSeconds = static_cast<int>((total - downloaded) /
-                                                                  speedBytesPerSec);
-                                  }
-                                  return true;
-                                }});
+  cpr::ProgressCallback progressCallback(
+      [&](cpr::cpr_pf_arg_t dlTotal, cpr::cpr_pf_arg_t dlNow, cpr::cpr_pf_arg_t,
+          cpr::cpr_pf_arg_t, intptr_t) {
+        total = static_cast<std::size_t>(dlTotal);
+        downloaded = static_cast<std::size_t>(dlNow);
+        const auto elapsed =
+            std::chrono::duration<double>(std::chrono::steady_clock::now() - start);
+        speedBytesPerSec = elapsed.count() > 0 ? downloaded / elapsed.count() : 0.0;
+        if (speedBytesPerSec > 0 && total > downloaded) {
+          etaSeconds = static_cast<int>((total - downloaded) / speedBytesPerSec);
+        }
+        return true;
+      },
+      0);
+
+  auto response = cpr::Download(out, cpr::Url{url}, cpr::VerifySsl{true}, progressCallback);
 
   if (response.error.code != cpr::ErrorCode::OK) {
     errorOut = response.error.message;
